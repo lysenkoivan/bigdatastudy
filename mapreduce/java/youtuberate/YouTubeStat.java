@@ -2,6 +2,7 @@ package youtuberate;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -15,6 +16,22 @@ import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 
 
 public class YouTubeStat {
+
+    public static class TextArrayWritable extends ArrayWritable {
+        public TextArrayWritable() {
+            super(Text.class);
+        }
+
+        public TextArrayWritable(String[] strings) {
+            super(Text.class);
+            Text[] texts = new Text[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                texts[i] = new Text(strings[i]);
+            }
+            set(texts);
+        }
+
+    }
 
     public class VideoStatMapper
             extends Mapper<LongWritable, Text, DoubleWritable, ArrayWritable>{
@@ -31,34 +48,45 @@ public class YouTubeStat {
             DecimalFormat df = new DecimalFormat("#.00");
             DoubleWritable rate = new DoubleWritable(Double.valueOf(df.format(statLine[6])));
 
-            context.write(rate, new ArrayWritable(array));
+            context.write(rate, new TextArrayWritable(array));
 
         }
     }
 
     public static class ArrayMultiOutputReducer
-            extends Reducer<DoubleWritable, ArrayWritable, Text,IntWritable> {
+            extends Reducer<DoubleWritable, ArrayWritable, Text, IntWritable> {
 
         private MultipleOutputs<Text, IntWritable> multipleOutputs;
-        private IntWritable result = new IntWritable();
 
-        public void reduce(DoubleWritable key, Iterable<ArrayWritable> values,
+        public void reduce(DoubleWritable key, Iterable<TextArrayWritable> values,
                            Context context
         ) throws IOException, InterruptedException {
 
-            Text[] array = new Text[2];
+            String[] tmp = new String[2];
+            List<String[]> array = new ArrayList<String[]>();
 
-            for (ArrayWritable val: values){
-                array = (Text)val.get();
-                //TODO: sort output by rating
-//                for (Writable writable: val.get()){
-//                    Text text = (Text)writable;
-//                    String s = text.toString();
-//                }
+            for (TextArrayWritable val: values){
+                array.add(val.toStrings());
             }
 
-            //TODO use MultipleOutputs and generate output with custom filename
-            multipleOutputs.write(rating, videoID, key.toString());
+            //sorting output by rating using Collections.sort with comparator
+            Collections.sort(array, new Comparator<String[]>() {
+                @Override
+                public int compare(final String[] entry1, final String[] entry2) {
+                    final Integer rating1 = Integer.parseInt(entry1[0]);
+                    final Integer rating2 = Integer.parseInt(entry2[0]);
+                    return rating1.compareTo(rating2);
+                }
+            });
+
+            for (String[] val: array) {
+                Integer rating = Integer.parseInt(val[0]);
+                String videoID = val[1];
+                String filename = key.toString();
+            //using MultipleOutputs for generating output with custom filename
+            multipleOutputs.write(new Text(videoID), new IntWritable(rating), filename);
+
+            }
         }
 
 
