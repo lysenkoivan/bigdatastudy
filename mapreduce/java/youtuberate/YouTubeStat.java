@@ -1,9 +1,5 @@
 package youtuberate;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.*;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
@@ -13,6 +9,13 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 
 public class YouTubeStat {
@@ -93,7 +96,7 @@ public class YouTubeStat {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "word count");
+        Job job = Job.getInstance(conf, "youtube statistics");
         job.setJarByClass(YouTubeStat.class);
         job.setMapperClass(VideoStatMapper.class);
         job.setCombinerClass(ArrayMultiOutputReducer.class);
