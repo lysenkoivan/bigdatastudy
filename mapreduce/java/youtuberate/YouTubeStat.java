@@ -62,7 +62,6 @@ public class YouTubeStat {
                            Context context
         ) throws IOException, InterruptedException {
 
-            String[] tmp = new String[2];
             List<String[]> array = new ArrayList<String[]>();
 
             for (TextArrayWritable val: values){
