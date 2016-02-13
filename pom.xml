@@ -65,6 +65,9 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <sourceDirectory>mapreduce/java</sourceDirectory>
+        <testSourceDirectory>mapreduce/tests</testSourceDirectory>
     </build>
 
     <repositories>
