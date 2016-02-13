@@ -6,6 +6,7 @@ import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobStatus;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -87,8 +88,7 @@ public class TestYouTubeStat {
 
         writeHDFSContent(fs, inDir, DATA_FILE, content);
 
-        // set up the job, submit the job and wait for it complete
-        Job job = new Job(conf, "Test Youtube Statistics");
+        Job job = Job.getInstance(conf, "Test Youtube Statistics");
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
         job.setMapperClass(YouTubeStat.VideoStatMapper.class);
@@ -96,7 +96,7 @@ public class TestYouTubeStat {
         FileInputFormat.addInputPath(job, inDir);
         FileOutputFormat.setOutputPath(job, outDir);
         job.waitForCompletion(true);
-        assertTrue(job.isSuccessful());
+        assertEquals(JobStatus.State.SUCCEEDED, job.getJobState());
 
         // check output files
         FileStatus[] files = fs.listStatus(outDir);
