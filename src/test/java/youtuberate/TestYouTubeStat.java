@@ -7,12 +7,16 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobStatus;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.test.PathUtils;
+import org.apache.log4j.net.SyslogAppender;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,6 +31,8 @@ public class TestYouTubeStat {
 
     private static final String CLUSTER_1 = "cluster1";
 
+    static Logger log = Logger.getRootLogger(); //getLogger(TestYouTubeStat.class.getName());
+
     private File testDataPath;
     private Configuration conf;
     private MiniDFSCluster cluster;
@@ -38,6 +44,7 @@ public class TestYouTubeStat {
                 "miniclusters");
 
         System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA);
+        System.setProperty("hadoop.home.dir", "/home/vagrant/hadoop-2.7.2/bin/");
         conf = new HdfsConfiguration();
 
         File testDataCluster1 = new File(testDataPath, CLUSTER_1);
@@ -88,7 +95,7 @@ public class TestYouTubeStat {
         writeHDFSContent(fs, inDir, DATA_FILE, content);
 
         // set up the job, submit the job and wait for it complete
-        Job job = new Job(conf, "Test Youtube Statistics");
+        Job job = Job.getInstance(conf, "youtubestat");
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
         job.setMapperClass(YouTubeStat.VideoStatMapper.class);
@@ -96,7 +103,9 @@ public class TestYouTubeStat {
         FileInputFormat.addInputPath(job, inDir);
         FileOutputFormat.setOutputPath(job, outDir);
         job.waitForCompletion(true);
-        assertTrue(job.isSuccessful());
+        System.out.println(job);
+        log.debug(job.toString());
+        assertEquals(job.getJobFile(), JobStatus.State.SUCCEEDED, job.getJobState());
 
         // check output files
         FileStatus[] files = fs.listStatus(outDir);
