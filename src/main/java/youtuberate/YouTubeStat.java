@@ -53,8 +53,8 @@ public class YouTubeStat {
             String[] array = {rating, videoID};
 
             DecimalFormat df = new DecimalFormat("#.00");
-            log.debug("Rate is: " + statLine[6]);
-            log.debug("Formatter Rate is: " + df.format(statLine[6]));
+            log.info("Rate is: " + statLine[6]);
+            log.info("Formatter Rate is: " + df.format(statLine[6]));
             DoubleWritable rate = new DoubleWritable(Double.valueOf(df.format(statLine[6])));
 
             context.write(rate, new TextArrayWritable(array));
