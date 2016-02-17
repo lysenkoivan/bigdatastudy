@@ -10,6 +10,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -36,8 +38,10 @@ public class YouTubeStat {
 
     }
 
-    public class VideoStatMapper
+    public static class VideoStatMapper
             extends Mapper<LongWritable, Text, DoubleWritable, ArrayWritable>{
+
+        private static Logger log = Logger.getLogger("mapr");
 
         public void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
@@ -49,6 +53,8 @@ public class YouTubeStat {
             String[] array = {rating, videoID};
 
             DecimalFormat df = new DecimalFormat("#.00");
+            log.debug("Rate is: " + statLine[6]);
+            log.debug("Formatter Rate is: " + df.format(statLine[6]));
             DoubleWritable rate = new DoubleWritable(Double.valueOf(df.format(statLine[6])));
 
             context.write(rate, new TextArrayWritable(array));

@@ -4,6 +4,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.server.MiniYARNCluster;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -11,10 +13,10 @@ import org.apache.hadoop.mapreduce.JobStatus;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.test.PathUtils;
-import org.apache.log4j.net.SyslogAppender;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.apache.log4j.Logger;
 
@@ -36,6 +38,8 @@ public class TestYouTubeStat {
     private File testDataPath;
     private Configuration conf;
     private MiniDFSCluster cluster;
+    private MiniYARNCluster miniYARNCluster;
+    private YarnConfiguration appConf;
     private FileSystem fs;
 
     @Before
@@ -53,6 +57,20 @@ public class TestYouTubeStat {
         cluster = new MiniDFSCluster.Builder(conf).build();
 
         fs = FileSystem.get(conf);
+
+
+        YarnConfiguration clusterConf = new YarnConfiguration();
+        conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 64);
+        conf.setClass(YarnConfiguration.RM_SCHEDULER,
+                FifoScheduler.class, ResourceScheduler.class);
+        miniYARNCluster = new MiniYARNCluster("miniYarnCluster", 1, 1, 1);
+        miniYARNCluster.init(conf);
+        miniYARNCluster.start();
+
+        //once the cluster is created, you can get its configuration
+        //with the binding details to the cluster added from the minicluster
+        appConf = new YarnConfiguration(miniYARNCluster.getConfig());
+
     }
 
     @After

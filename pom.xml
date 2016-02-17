@@ -6,7 +6,7 @@
 <name>Map Reduces</name>
 
 <properties>
-    <hadoop.version>2.7.2</hadoop.version>
+    <hadoop.version>2.6.0-cdh5.5.1</hadoop.version>
 </properties>
 
 <dependencies>
@@ -42,7 +42,21 @@
         <version>${hadoop.version}</version>
         <scope>compile</scope>
     </dependency>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>test</scope>
+        <classifier>tests</classifier>
+    </dependency>
 
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-yarn-server-tests</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>test</scope>
+        <classifier>tests</classifier>
+    </dependency>
     <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
