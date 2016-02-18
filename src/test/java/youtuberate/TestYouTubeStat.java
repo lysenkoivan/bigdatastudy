@@ -15,6 +15,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.test.PathUtils;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,7 @@ public class TestYouTubeStat {
 
     private static final String CLUSTER_1 = "cluster1";
 
-    static Logger log = Logger.getRootLogger(); //getLogger(TestYouTubeStat.class.getName());
+    static Logger log = Logger.getLogger("mapr");
 
     private File testDataPath;
     private Configuration conf;
@@ -44,15 +45,20 @@ public class TestYouTubeStat {
 
     @Before
     public void setUp() throws Exception {
-        testDataPath = new File(PathUtils.getTestDir(getClass()),
-                "miniclusters");
+
+        testDataPath = new File("/home/vagrant/bigdatastudy/target", "miniclusters");
+        log.info("testDataPath: " + testDataPath.getPath());
+        log.info("testDataPath abspath: " + testDataPath.getAbsolutePath());
 
         System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA);
         System.setProperty("hadoop.home.dir", "/home/vagrant/hadoop-2.7.2/bin/");
         conf = new HdfsConfiguration();
 
         File testDataCluster1 = new File(testDataPath, CLUSTER_1);
+        log.info("testDataCluster " + testDataCluster1.getPath());
+        log.info("testDataCluster abspath: " + testDataCluster1.getAbsolutePath());
         String c1Path = testDataCluster1.getAbsolutePath();
+        log.info("c1Path " + c1Path);
         conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, c1Path);
         cluster = new MiniDFSCluster.Builder(conf).build();
 
@@ -65,6 +71,7 @@ public class TestYouTubeStat {
                 FifoScheduler.class, ResourceScheduler.class);
         miniYARNCluster = new MiniYARNCluster("miniYarnCluster", 1, 1, 1);
         miniYARNCluster.init(conf);
+        log.info(conf.toString());
         miniYARNCluster.start();
 
         //once the cluster is created, you can get its configuration
@@ -73,8 +80,10 @@ public class TestYouTubeStat {
 
     }
 
-    @After
+//    @After
     public void tearDown() throws Exception {
+        log.info("testDataPath.getParentFile().getParentFile().getParent() " +
+                testDataPath.getParentFile().getParentFile().getParent());
         Path dataDir = new Path(
                 testDataPath.getParentFile().getParentFile().getParent());
         fs.delete(dataDir, true);

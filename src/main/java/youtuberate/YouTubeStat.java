@@ -54,8 +54,8 @@ public class YouTubeStat {
 
             DecimalFormat df = new DecimalFormat("#.00");
             log.info("Rate is: " + statLine[6]);
-            log.info("Formatter Rate is: " + df.format(statLine[6]));
-            DoubleWritable rate = new DoubleWritable(Double.valueOf(df.format(statLine[6])));
+            log.info("Formatter Rate is: " + df.format(Double.valueOf(statLine[6])));
+            DoubleWritable rate = new DoubleWritable(Double.valueOf(df.format(Double.valueOf(statLine[6]))));
 
             context.write(rate, new TextArrayWritable(array));
 
