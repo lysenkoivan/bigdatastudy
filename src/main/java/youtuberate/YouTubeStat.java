@@ -39,7 +39,7 @@ public class YouTubeStat {
     }
 
     public static class VideoStatMapper
-            extends Mapper<LongWritable, Text, DoubleWritable, ArrayWritable>{
+            extends Mapper<LongWritable, Text, Text, ArrayWritable>{
 
         private static Logger log = Logger.getLogger("mapr");
 
@@ -57,7 +57,7 @@ public class YouTubeStat {
             log.info("Formatter Rate is: " + df.format(Double.valueOf(statLine[6])));
             DoubleWritable rate = new DoubleWritable(Double.valueOf(df.format(Double.valueOf(statLine[6]))));
 
-            context.write(rate, new TextArrayWritable(array));
+            context.write(new Text(rate.toString()), new ArrayWritable(array));
 
         }
     }
@@ -96,8 +96,6 @@ public class YouTubeStat {
 
             }
         }
-
-
     }
 
     public static void main(String[] args) throws Exception {

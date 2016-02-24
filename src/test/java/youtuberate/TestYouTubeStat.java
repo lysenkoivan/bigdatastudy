@@ -35,6 +35,7 @@ public class TestYouTubeStat {
     private static final String CLUSTER_1 = "cluster1";
 
     static Logger log = Logger.getLogger("mapr");
+    static String TARGET_PATH = "/home/vagrant/bigdatastudy/target";
 
     private File testDataPath;
     private Configuration conf;
@@ -46,17 +47,17 @@ public class TestYouTubeStat {
     @Before
     public void setUp() throws Exception {
 
-        testDataPath = new File("/home/vagrant/bigdatastudy/target", "miniclusters");
-        log.info("testDataPath: " + testDataPath.getPath());
-        log.info("testDataPath abspath: " + testDataPath.getAbsolutePath());
+        testDataPath = new File(TARGET_PATH, "miniclusters");
+//        log.info("testDataPath: " + testDataPath.getPath());
+//        log.info("testDataPath abspath: " + testDataPath.getAbsolutePath());
 
         System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA);
         System.setProperty("hadoop.home.dir", "/home/vagrant/hadoop-2.7.2/bin/");
         conf = new HdfsConfiguration();
 
         File testDataCluster1 = new File(testDataPath, CLUSTER_1);
-        log.info("testDataCluster " + testDataCluster1.getPath());
-        log.info("testDataCluster abspath: " + testDataCluster1.getAbsolutePath());
+//        log.info("testDataCluster " + testDataCluster1.getPath());
+//        log.info("testDataCluster abspath: " + testDataCluster1.getAbsolutePath());
         String c1Path = testDataCluster1.getAbsolutePath();
         log.info("c1Path " + c1Path);
         conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, c1Path);
@@ -65,18 +66,20 @@ public class TestYouTubeStat {
         fs = FileSystem.get(conf);
 
 
-        YarnConfiguration clusterConf = new YarnConfiguration();
         conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 64);
         conf.setClass(YarnConfiguration.RM_SCHEDULER,
                 FifoScheduler.class, ResourceScheduler.class);
+        conf.set(YarnConfiguration.NM_LOCAL_DIRS, TARGET_PATH);
+        log.info("NM_local_dirs " + conf.get(YarnConfiguration.NM_LOCAL_DIRS));
         miniYARNCluster = new MiniYARNCluster("miniYarnCluster", 1, 1, 1);
         miniYARNCluster.init(conf);
-        log.info(conf.toString());
+        log.info(conf.get("yarn.nodemanager.local-dirs"));
         miniYARNCluster.start();
 
         //once the cluster is created, you can get its configuration
         //with the binding details to the cluster added from the minicluster
         appConf = new YarnConfiguration(miniYARNCluster.getConfig());
+        log.info("appconf" + appConf.toString());
 
     }
 
