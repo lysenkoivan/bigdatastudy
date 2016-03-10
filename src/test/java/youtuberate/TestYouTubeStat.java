@@ -12,14 +12,15 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobStatus;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.test.PathUtils;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.apache.log4j.Logger;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,13 +32,11 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class TestYouTubeStat {
-
-    private static final String CLUSTER_1 = "cluster1";
+    @Rule
+    public final TemporaryFolder directory = new TemporaryFolder();
 
     static Logger log = Logger.getLogger("mapr");
-    static String TARGET_PATH = "/home/vagrant/bigdatastudy/target";
 
-    private File testDataPath;
     private Configuration conf;
     private MiniDFSCluster cluster;
     private MiniYARNCluster miniYARNCluster;
@@ -46,30 +45,21 @@ public class TestYouTubeStat {
 
     @Before
     public void setUp() throws Exception {
-
-        testDataPath = new File(TARGET_PATH, "miniclusters");
-//        log.info("testDataPath: " + testDataPath.getPath());
-//        log.info("testDataPath abspath: " + testDataPath.getAbsolutePath());
-
         System.clearProperty(MiniDFSCluster.PROP_TEST_BUILD_DATA);
-        System.setProperty("hadoop.home.dir", "/home/vagrant/hadoop-2.7.2/bin/");
+
+        File dfsBaseDir = directory.newFolder("dfs");
+        File nmBaseDir = directory.newFolder("namenode");
+
         conf = new HdfsConfiguration();
 
-        File testDataCluster1 = new File(testDataPath, CLUSTER_1);
-//        log.info("testDataCluster " + testDataCluster1.getPath());
-//        log.info("testDataCluster abspath: " + testDataCluster1.getAbsolutePath());
-        String c1Path = testDataCluster1.getAbsolutePath();
-        log.info("c1Path " + c1Path);
-        conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, c1Path);
+        conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, dfsBaseDir.getAbsolutePath());
         cluster = new MiniDFSCluster.Builder(conf).build();
 
         fs = FileSystem.get(conf);
 
-
         conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 64);
-        conf.setClass(YarnConfiguration.RM_SCHEDULER,
-                FifoScheduler.class, ResourceScheduler.class);
-        conf.set(YarnConfiguration.NM_LOCAL_DIRS, TARGET_PATH);
+        conf.setClass(YarnConfiguration.RM_SCHEDULER, FifoScheduler.class, ResourceScheduler.class);
+        conf.set(YarnConfiguration.NM_LOCAL_DIRS, nmBaseDir.getAbsolutePath());
         log.info("NM_local_dirs " + conf.get(YarnConfiguration.NM_LOCAL_DIRS));
         miniYARNCluster = new MiniYARNCluster("miniYarnCluster", 1, 1, 1);
         miniYARNCluster.init(conf);
@@ -83,18 +73,8 @@ public class TestYouTubeStat {
 
     }
 
-//    @After
+    @After
     public void tearDown() throws Exception {
-        log.info("testDataPath.getParentFile().getParentFile().getParent() " +
-                testDataPath.getParentFile().getParentFile().getParent());
-        Path dataDir = new Path(
-                testDataPath.getParentFile().getParentFile().getParent());
-        fs.delete(dataDir, true);
-        File rootTestFile = new File(testDataPath.getParentFile().getParentFile().getParent());
-        String rootTestDir = rootTestFile.getAbsolutePath();
-        Path rootTestPath = new Path(rootTestDir);
-        LocalFileSystem localFileSystem = FileSystem.getLocal(conf);
-        localFileSystem.delete(rootTestPath, true);
         cluster.shutdown();
     }
 
@@ -171,7 +151,7 @@ public class TestYouTubeStat {
     private void writeHDFSContent(FileSystem fs, Path dir, String fileName, List<String> content) throws IOException {
         Path newFilePath = new Path(dir, fileName);
         FSDataOutputStream out = fs.create(newFilePath);
-        for (String line : content){
+        for (String line : content) {
             out.writeBytes(line);
         }
         out.close();
