@@ -39,12 +39,12 @@ public class YouTubeStat {
     }
 
     public static class VideoStatMapper
-            extends Mapper<LongWritable, Text, Text, ArrayWritable>{
+        extends Mapper<LongWritable, Text, Text, ArrayWritable> {
 
         private static Logger log = Logger.getLogger("mapr");
 
         public void map(LongWritable key, Text value, Context context)
-                throws IOException, InterruptedException {
+            throws IOException, InterruptedException {
             String line = value.toString();
 
             String[] statLine = line.split("\\t");
@@ -63,17 +63,15 @@ public class YouTubeStat {
     }
 
     public static class ArrayMultiOutputReducer
-            extends Reducer<DoubleWritable, ArrayWritable, Text, IntWritable> {
+        extends Reducer<DoubleWritable, ArrayWritable, Text, IntWritable> {
 
         private MultipleOutputs<Text, IntWritable> multipleOutputs;
 
-        public void reduce(DoubleWritable key, Iterable<TextArrayWritable> values,
-                           Context context
-        ) throws IOException, InterruptedException {
+        public void reduce(DoubleWritable key, Iterable<TextArrayWritable> values, Context context) throws IOException, InterruptedException {
 
             List<String[]> array = new ArrayList<String[]>();
 
-            for (TextArrayWritable val: values){
+            for (TextArrayWritable val : values) {
                 array.add(val.toStrings());
             }
 
@@ -87,12 +85,12 @@ public class YouTubeStat {
                 }
             });
 
-            for (String[] val: array) {
+            for (String[] val : array) {
                 Integer rating = Integer.parseInt(val[0]);
                 String videoID = val[1];
                 String filename = key.toString();
-            //using MultipleOutputs for generating output with custom filename
-            multipleOutputs.write(new Text(videoID), new IntWritable(rating), filename);
+                //using MultipleOutputs for generating output with custom filename
+                multipleOutputs.write(new Text(videoID), new IntWritable(rating), filename);
 
             }
         }
