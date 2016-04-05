@@ -1,0 +1,11 @@
+in_d = LOAD '/vagrant/data/test.txt' AS (video_id:chararray, uploader:chararray, age:int, category:chararray, length:int, views:chararray, rate:chararray, ratings:float, comments:chararray, related_ids);
+mapped = FOREACH in_d GENERATE rate, ratings, video_id;
+-- DUMP mapped;
+-- groupped_mapped = GROUP mapped BY rate;
+groupped_mapped = GROUP mapped BY STRSPLIT(rate, '.', 2);
+groupped_mapped = GROUP mapped BY SUBSTRING( STRSPLIT(rate, '.', 2).$1, 1, ((int) SIZE( ((chararray) STRSPLIT(rate, '.', 2).$1) )) );
+-- filtered_mapped = FOREACH groupped_mapped GENERATE SUBSTRING(group.$1, 1, ((int) SIZE(group.$1)), TOBAG(mapped.rate, mapped.video_id));
+-- DUMP groupped_mapped;
+REGISTER /home/vagrant/pig-0.15.0/lib/piggybank.jar;
+DEFINE MultiStorage org.apache.pig.piggybank.storage.MultiStorage('/home/vagrant/bigdatastudy/output', '0', 'none', '\\t');
+STORE groupped_mapped INTO '/home/vagrant/bigdatastudy/output' USING MultiStorage('/home/vagrant/bigdatastudy/output', '0', 'none', '\\t');

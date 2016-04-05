@@ -1,0 +1,2 @@
+#!/bin/bash
+/home/vagrant/pig-0.15.0/bin/pig -x local /vagrant/src/pig/YouTubeStat.pig
